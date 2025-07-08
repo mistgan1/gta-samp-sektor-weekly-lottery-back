@@ -10,9 +10,13 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors({
-  origin: 'https://gta-samp-sektor-weekly-lottery.onrender.com',
+  origin: [
+    'https://gta-samp-sektor-weekly-lottery.onrender.com',
+    'https://mistgan1.github.io', 
+    'http://localhost:3000'          
+  ],
   methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type']
+  credentials: true
 }));
 app.use(express.json());
 
