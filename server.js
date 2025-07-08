@@ -283,18 +283,16 @@ app.post('/update-prize', (req, res) => {
 
 
 // 📂 Эндпоинт для загрузки истории (всегда читает файл с диска)
-app.get('/history', async (req, res) => {
-    try {
-        if (fs.existsSync(historyFilePath)) {
-            const history = JSON.parse(await fs.promises.readFile(historyFilePath, 'utf-8')) || [];
-            res.json(history);
-        } else {
-            res.json([]); // Если файла нет, отправляем пустой массив
-        }
-    } catch (error) {
-        console.error('❌ Ошибка чтения history.json:', error);
-        res.status(500).json({ success: false, message: 'Ошибка сервера' });
-    }
+app.get('/history', (req, res) => {
+  try {
+    const rawData = fs.readFileSync(historyFilePath, 'utf-8');
+    console.log("Raw file content:", rawData); // Добавьте этот лог
+    const history = JSON.parse(rawData);
+    res.json(history);
+  } catch (error) {
+    console.error("Error reading history:", error);
+    res.status(500).json({ error: "Failed to read history" });
+  }
 });
 
 // 📂 Эндпоинт для обновления приза победителя
