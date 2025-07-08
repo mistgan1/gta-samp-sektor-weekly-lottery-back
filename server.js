@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'url'; // Исправленный импорт
 
 // Получаем __dirname в ES-модулях
 const __filename = fileURLToPath(import.meta.url);
