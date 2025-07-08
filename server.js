@@ -1,16 +1,38 @@
-const express = require('express');
-const cors = require('cors');
-const fs = require('fs');
-const path = require('path');
+import express from 'express';
+import cors from 'cors';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'node:url';  // Явно указываем, что это node-модуль
+
+// Получаем __dirname в ES-модулях
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Пути к файлам
-const historyFilePath = path.join(__dirname, 'history.json');
-const namesFilePath = path.join(__dirname, 'names.json');
-const prizesFilePath = path.join(__dirname, 'prizes.json');
+// Пути к файлам (используем path.join для кроссплатформенности)
+const dataDir = path.join(__dirname, 'data');
+const historyFilePath = path.join(dataDir, 'history.json');
+const namesFilePath = path.join(dataDir, 'names.json');
+const prizesFilePath = path.join(dataDir, 'prizes.json');
+
+// Создаем директорию data если её нет
+if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir);
+}
+
+// Инициализация файлов если они не существуют
+const initFile = (filePath, defaultValue = []) => {
+    if (!fs.existsSync(filePath)) {
+        fs.writeFileSync(filePath, JSON.stringify(defaultValue, null, 2));
+    }
+};
+
+initFile(historyFilePath);
+initFile(namesFilePath);
+initFile(prizesFilePath);
 
 // Загрузка истории из файла с защитой от ошибок
 let history = [];
@@ -310,5 +332,8 @@ app.post('/update-winner-prize', async (req, res) => {
 
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Сервер запущен на http://localhost:${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Сервер запущен на http://localhost:${PORT}`);
+    console.log('Путь к данным:', dataDir);
+});
 
