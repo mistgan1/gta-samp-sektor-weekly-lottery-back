@@ -361,6 +361,12 @@
   {
     "date": "05.07.2025",
     "number": 89,
-    "name": "Goshan_Rusov 88"
+    "name": "Goshan_Rusov 88",
+    "prize": "dragon"
+  },
+  {
+    "date": "08.07.2025",
+    "number": 12,
+    "name": "Dima_MMO 6"
   }
 ]
