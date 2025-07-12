@@ -21,7 +21,7 @@
   },
   {
     "prize": "otluch",
-    "count": 0
+    "count": 5
   },
   {
     "prize": "heavy",
@@ -54,5 +54,9 @@
   {
     "prize": "santa",
     "count": 7
+  },
+  {
+    "prize": "present",
+    "count": 10
   }
 ]
