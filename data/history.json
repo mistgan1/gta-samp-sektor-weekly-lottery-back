@@ -379,11 +379,17 @@
   {
     "date": "15.07.2025",
     "number": 30,
-    "name": "Echpochmak 30"
+    "name": "Echpochmak 30",
+    "prize": "present"
   },
   {
     "date": "19.07.2025",
     "number": 45,
     "name": "Santis 45"
+  },
+  {
+    "date": "22.07.2025",
+    "number": 10,
+    "name": "Lockdown_ 15"
   }
 ]
