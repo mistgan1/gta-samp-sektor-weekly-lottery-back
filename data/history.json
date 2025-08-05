@@ -408,6 +408,12 @@
   {
     "date": "02.08.2025",
     "number": 80,
-    "name": "nemesida 77"
+    "name": "nemesida 77",
+    "prize": "dragon"
+  },
+  {
+    "date": "05.08.2025",
+    "number": 35,
+    "name": "Red_Skull 26"
   }
 ]
