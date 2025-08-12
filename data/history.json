@@ -420,6 +420,12 @@
   {
     "date": "09.08.2025",
     "number": 52,
-    "name": "Viy 52"
+    "name": "Viy 52",
+    "prize": "5kk"
+  },
+  {
+    "date": "12.08.2025",
+    "number": 87,
+    "name": "Johnson_Smith 86"
   }
 ]
