@@ -426,6 +426,12 @@
   {
     "date": "12.08.2025",
     "number": 87,
-    "name": "Johnson_Smith 86"
+    "name": "Johnson_Smith 86",
+    "prize": "berry"
+  },
+  {
+    "date": "16.08.2025",
+    "number": 91,
+    "name": "Sacrilege 92"
   }
 ]
