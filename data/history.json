@@ -432,6 +432,12 @@
   {
     "date": "16.08.2025",
     "number": 91,
-    "name": "Sacrilege 92"
+    "name": "Sacrilege 92",
+    "prize": "berry"
+  },
+  {
+    "date": "19.08.2025",
+    "number": 54,
+    "name": "Red_Skull 55"
   }
 ]
