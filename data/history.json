@@ -438,6 +438,12 @@
   {
     "date": "19.08.2025",
     "number": 54,
-    "name": "Red_Skull 55"
+    "name": "Red_Skull 55",
+    "prize": "dargon"
+  },
+  {
+    "date": "23.08.2025",
+    "number": 80,
+    "name": "Echpochmak 70"
   }
 ]
