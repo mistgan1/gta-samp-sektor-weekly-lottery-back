@@ -439,11 +439,17 @@
     "date": "19.08.2025",
     "number": 54,
     "name": "Red_Skull 55",
-    "prize": "dargon"
+    "prize": "dragon"
   },
   {
     "date": "23.08.2025",
     "number": 80,
-    "name": "Echpochmak 70"
+    "name": "Echpochmak 70",
+    "prize": "present"
+  },
+  {
+    "date": "26.08.2025",
+    "number": 27,
+    "name": "Red_Skull 25"
   }
 ]
