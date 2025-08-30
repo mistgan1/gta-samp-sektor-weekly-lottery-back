@@ -450,6 +450,22 @@
   {
     "date": "26.08.2025",
     "number": 27,
-    "name": "Red_Skull 25"
+    "name": "Red_Skull 25",
+    "prize": "dragon"
+  },
+  {
+    "date": "30.08.2025",
+    "number": 39,
+    "name": "Red_Skull 36"
+  },
+  {
+    "date": "30.08.2025",
+    "number": 64,
+    "name": "Sandy_Cheeks 65"
+  },
+  {
+    "date": "30.08.2025",
+    "number": 85,
+    "name": "Goshan_Rusov 79"
   }
 ]
