@@ -456,16 +456,24 @@
   {
     "date": "30.08.2025",
     "number": 39,
-    "name": "Red_Skull 36"
+    "name": "Red_Skull 36",
+    "prize": "coupons"
   },
   {
     "date": "30.08.2025",
     "number": 64,
-    "name": "Sandy_Cheeks 65"
+    "name": "Sandy_Cheeks 65",
+    "prize": "coupons"
   },
   {
     "date": "30.08.2025",
     "number": 85,
-    "name": "Goshan_Rusov 79"
+    "name": "Goshan_Rusov 79",
+    "prize": "coupons"
+  },
+  {
+    "date": "02.09.2025",
+    "number": 23,
+    "name": "Sandy_Cheeks 22"
   }
 ]
