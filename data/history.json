@@ -474,6 +474,12 @@
   {
     "date": "02.09.2025",
     "number": 23,
-    "name": "Sandy_Cheeks 22"
+    "name": "Sandy_Cheeks 22",
+    "prize": "coupons"
+  },
+  {
+    "date": "06.09.2025",
+    "number": 83,
+    "name": "Korsan 85"
   }
 ]
