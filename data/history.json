@@ -480,6 +480,12 @@
   {
     "date": "06.09.2025",
     "number": 83,
-    "name": "Korsan 85"
+    "name": "Korsan 85",
+    "prize": "5kk"
+  },
+  {
+    "date": "09.09.2025",
+    "number": 48,
+    "name": "Sacrilege 50"
   }
 ]
