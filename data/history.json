@@ -486,6 +486,12 @@
   {
     "date": "09.09.2025",
     "number": 48,
-    "name": "Sacrilege 50"
+    "name": "Sacrilege 50",
+    "prize": "berry"
+  },
+  {
+    "date": "13.09.2025",
+    "number": 41,
+    "name": "Echpochmak 42"
   }
 ]
