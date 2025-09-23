@@ -504,6 +504,12 @@
   {
     "date": "20.09.2025",
     "number": 15,
-    "name": "Lockdown_ 15"
+    "name": "Lockdown_ 15",
+    "prize": "berry"
+  },
+  {
+    "date": "23.09.2025",
+    "number": 9,
+    "name": "Sacrilege 10"
   }
 ]
