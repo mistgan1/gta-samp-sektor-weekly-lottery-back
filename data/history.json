@@ -510,6 +510,12 @@
   {
     "date": "23.09.2025",
     "number": 9,
-    "name": "Sacrilege 10"
+    "name": "Sacrilege 10",
+    "prize": "coupons"
+  },
+  {
+    "date": "27.09.2025",
+    "number": 48,
+    "name": "Viy 50"
   }
 ]
