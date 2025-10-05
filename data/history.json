@@ -522,6 +522,12 @@
   {
     "date": "30.09.2025",
     "number": 20,
-    "name": "Kaznokrad 20"
+    "name": "Kaznokrad 20",
+    "prize": "5kk"
+  },
+  {
+    "date": "04.10.2025",
+    "number": 86,
+    "name": "Sacrilege 86"
   }
 ]
