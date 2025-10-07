@@ -528,6 +528,12 @@
   {
     "date": "04.10.2025",
     "number": 86,
-    "name": "Sacrilege 86"
+    "name": "Sacrilege 86",
+    "prize": "dragon"
+  },
+  {
+    "date": "07.10.2025",
+    "number": 65,
+    "name": "Dima_MMO 62"
   }
 ]
