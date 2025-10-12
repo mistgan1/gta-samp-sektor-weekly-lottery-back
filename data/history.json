@@ -534,6 +534,12 @@
   {
     "date": "07.10.2025",
     "number": 65,
-    "name": "Dima_MMO 62"
+    "name": "Dima_MMO 62",
+    "prize": "heavy"
+  },
+  {
+    "date": "11.10.2025",
+    "number": 5,
+    "name": "Lockdown_ 10"
   }
 ]
