@@ -540,6 +540,12 @@
   {
     "date": "11.10.2025",
     "number": 5,
-    "name": "Lockdown_ 10"
+    "name": "Lockdown_ 10",
+    "prize": "berry"
+  },
+  {
+    "date": "14.10.2025",
+    "number": 27,
+    "name": "Lockdown_ 25"
   }
 ]
