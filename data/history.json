@@ -594,6 +594,12 @@
   {
     "date": "04.11.2025",
     "number": 19,
-    "name": "Lockdown_ 20"
+    "name": "Lockdown_ 20",
+    "prize": "berry"
+  },
+  {
+    "date": "08.11.2025",
+    "number": 86,
+    "name": "Johnson_Smith 89"
   }
 ]
