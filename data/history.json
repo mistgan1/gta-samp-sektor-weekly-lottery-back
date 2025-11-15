@@ -606,6 +606,12 @@
   {
     "date": "11.11.2025",
     "number": 84,
-    "name": "Johnson_Smith 85"
+    "name": "Johnson_Smith 85",
+    "prize": "heavy"
+  },
+  {
+    "date": "15.11.2025",
+    "number": 18,
+    "name": "Lockdown_ 15"
   }
 ]
