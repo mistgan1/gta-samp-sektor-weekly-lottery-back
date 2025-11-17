@@ -612,6 +612,12 @@
   {
     "date": "15.11.2025",
     "number": 18,
-    "name": "Lockdown_ 15"
+    "name": "Lockdown_ 15",
+    "prize": "heavy"
+  },
+  {
+    "date": "18.11.2025",
+    "number": 17,
+    "name": "Korsan 20"
   }
 ]
