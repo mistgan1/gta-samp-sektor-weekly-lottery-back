@@ -618,6 +618,12 @@
   {
     "date": "18.11.2025",
     "number": 17,
-    "name": "Korsan 20"
+    "name": "Korsan 20",
+    "prize": "5kk"
+  },
+  {
+    "date": "22.11.2025",
+    "number": 30,
+    "name": "Sacrilege 30"
   }
 ]
