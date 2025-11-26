@@ -624,6 +624,12 @@
   {
     "date": "22.11.2025",
     "number": 30,
-    "name": "Sacrilege 30"
+    "name": "Sacrilege 30",
+    "prize": "dragon"
+  },
+  {
+    "date": "25.11.2025",
+    "number": 20,
+    "name": "Red_Skull 21"
   }
 ]
