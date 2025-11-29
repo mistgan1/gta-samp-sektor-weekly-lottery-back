@@ -630,6 +630,12 @@
   {
     "date": "25.11.2025",
     "number": 20,
-    "name": "Red_Skull 21"
+    "name": "Red_Skull 21",
+    "prize": "present"
+  },
+  {
+    "date": "29.11.2025",
+    "number": 100,
+    "name": "Ol_ 92"
   }
 ]
