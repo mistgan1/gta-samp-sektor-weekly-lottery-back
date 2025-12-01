@@ -636,6 +636,12 @@
   {
     "date": "29.11.2025",
     "number": 100,
-    "name": "Ol_ 92"
+    "name": "Ol_ 92",
+    "prize": "dragon"
+  },
+  {
+    "date": "02.12.2025",
+    "number": 72,
+    "name": "Red_Skull 69"
   }
 ]
