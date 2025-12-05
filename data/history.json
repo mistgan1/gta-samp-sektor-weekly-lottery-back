@@ -642,6 +642,12 @@
   {
     "date": "02.12.2025",
     "number": 72,
-    "name": "Red_Skull 69"
+    "name": "Red_Skull 69",
+    "prize": "coupons"
+  },
+  {
+    "date": "06.12.2025",
+    "number": 18,
+    "name": "Lockdown_ 15"
   }
 ]
