@@ -654,6 +654,12 @@
   {
     "date": "09.12.2025",
     "number": 79,
-    "name": "Dima_MMO 78"
+    "name": "Dima_MMO 78",
+    "prize": "otluch"
+  },
+  {
+    "date": "13.12.2025",
+    "number": 28,
+    "name": "Pumping 30"
   }
 ]
