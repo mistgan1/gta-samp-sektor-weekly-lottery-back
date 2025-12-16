@@ -660,6 +660,12 @@
   {
     "date": "13.12.2025",
     "number": 28,
-    "name": "Pumping 30"
+    "name": "Pumping 30",
+    "prize": "krasnorech"
+  },
+  {
+    "date": "16.12.2025",
+    "number": 25,
+    "name": "Korsan 25"
   }
 ]
