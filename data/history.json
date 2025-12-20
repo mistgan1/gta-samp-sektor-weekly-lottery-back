@@ -666,6 +666,12 @@
   {
     "date": "16.12.2025",
     "number": 25,
-    "name": "Korsan 25"
+    "name": "Korsan 25",
+    "prize": "5kk"
+  },
+  {
+    "date": "17.12.2025",
+    "number": 30,
+    "name": "Red_Skull 30"
   }
 ]
