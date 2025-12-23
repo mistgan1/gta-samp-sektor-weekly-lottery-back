@@ -9,7 +9,7 @@ app.use(cors({
     'https://mistgan1.github.io',
     'http://localhost:3000'
   ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
   preflightContinue: false,
@@ -24,8 +24,20 @@ const {
   GITHUB_BRANCH = 'main',
 } = process.env;
 
+// ────────────────────────────────────────────────
+// Новый токен и параметры для ПУБЛИЧНОГО репозитория
+// ────────────────────────────────────────────────
+const PUBLIC_GH_TOKEN = process.env.GITHUB_PUBLIC_TOKEN;
+const PUBLIC_OWNER = 'mistgan1';
+const PUBLIC_REPO = 'gta-samp-sektor-weekly-lottery-back';
+const PUBLIC_BRANCH = 'main'; // если у тебя другая ветка — измени здесь
+
 if (!GITHUB_TOKEN || !GITHUB_OWNER || !GITHUB_REPO) {
   console.warn('⚠️ Не заданы ENV: GITHUB_TOKEN / GITHUB_OWNER / GITHUB_REPO');
+}
+
+if (!PUBLIC_GH_TOKEN) {
+  console.warn('⚠️ GITHUB_PUBLIC_TOKEN не задан — бэкапы в публичный репозиторий работать не будут');
 }
 
 const GH_API = 'https://api.github.com';
@@ -33,6 +45,14 @@ const GH_API = 'https://api.github.com';
 function ghHeaders() {
   return {
     'Authorization': `Bearer ${GITHUB_TOKEN}`,
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+}
+
+function publicGhHeaders() {
+  return {
+    'Authorization': `Bearer ${PUBLIC_GH_TOKEN}`,
     'Accept': 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
   };
@@ -80,6 +100,28 @@ async function ghPutFile(filePath, jsonValue, sha, message) {
   return await r.json();
 }
 
+async function publicGhPutFile(filePath, jsonValue, sha, message) {
+  const url = `${GH_API}/repos/${PUBLIC_OWNER}/${PUBLIC_REPO}/contents/${filePath}`;
+  const body = {
+    message,
+    content: encodeBase64Utf8(JSON.stringify(jsonValue, null, 2)),
+    branch: PUBLIC_BRANCH,
+  };
+  if (sha) body.sha = sha;
+
+  const r = await fetch(url, {
+    method: 'PUT',
+    headers: { ...publicGhHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!r.ok) {
+    const text = await r.text();
+    throw new Error(`Public repo PUT failed (${r.status}): ${text}`);
+  }
+  return await r.json();
+}
+
 // Пути в приватном репо
 const PATH_HISTORY = 'data/history.json';
 const PATH_NAMES  = 'data/names.json';
@@ -117,16 +159,13 @@ app.get('/prizes', async (req, res) => {
   }
 });
 
-// простая авторизация как у тебя сейчас
-
+// Авторизация через ENV
 app.post('/auth', (req, res) => {
   const { password } = req.body;
-
-  // Получаем пароль из переменной окружения
   const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
   if (!ADMIN_PASSWORD) {
-    console.error('ADMIN_PASSWORD не установлен в переменных окружения!');
+    console.error('ADMIN_PASSWORD не установлен!');
     return res.status(500).json({ success: false, message: 'Ошибка сервера' });
   }
 
@@ -137,7 +176,7 @@ app.post('/auth', (req, res) => {
   res.status(401).json({ success: false, message: 'Неверный пароль' });
 });
 
-// reserve квадратов (обновляет data/names.json в GitHub)
+// reserve квадратов (приватный репо)
 app.post('/reserve', async (req, res) => {
   try {
     const { number, nickname } = req.body;
@@ -145,10 +184,8 @@ app.post('/reserve', async (req, res) => {
 
     const { json: reserved, sha } = await ghGetFile(PATH_NAMES);
 
-    // удаляем старую запись по number
     const filtered = (reserved || []).filter(item => item.number !== Number(number));
 
-    // если nickname пустой — значит освобождаем
     if (nickname && String(nickname).trim() !== '') {
       filtered.push({ number: Number(number), nickname: String(nickname).trim() });
     }
@@ -167,7 +204,7 @@ app.post('/reserve', async (req, res) => {
   }
 });
 
-// update winner name (history) — если ты всё же хочешь править через UI
+// update winner name
 app.post('/update-winner', async (req, res) => {
   try {
     const { date, number, name } = req.body;
@@ -190,7 +227,7 @@ app.post('/update-winner', async (req, res) => {
   }
 });
 
-// update winner prize (history)
+// update winner prize
 app.post('/update-winner-prize', async (req, res) => {
   try {
     const { date, name, prize } = req.body;
@@ -213,7 +250,7 @@ app.post('/update-winner-prize', async (req, res) => {
   }
 });
 
-// update prize counters (prizes.json)
+// update prize counters
 app.post('/update-prize', async (req, res) => {
   try {
     const { prize, count } = req.body;
@@ -237,8 +274,7 @@ app.post('/update-prize', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
-
+// Удаление записи из истории
 app.delete('/history/:date/:number', async (req, res) => {
   try {
     const { date, number } = req.params;
@@ -267,11 +303,8 @@ app.delete('/history/:date/:number', async (req, res) => {
     res.status(500).json({ success: false, message: 'Ошибка при удалении записи' });
   }
 });
-app.listen(PORT, () => {
-  console.log(`✅ Server listening on :${PORT}`);
-  console.log(`📦 Data repo: ${GITHUB_OWNER}/${GITHUB_REPO} (${GITHUB_BRANCH})`);
-});
 
+// Сохранение истории
 app.post('/save-history', async (req, res) => {
   try {
     const { date, number, name, chosenNumber, prize, mode } = req.body;
@@ -312,7 +345,8 @@ app.post('/save-history', async (req, res) => {
     res.status(500).json({ success: false });
   }
 });
-// Новый маршрут для сохранения в log
+
+// Сохранение бэкапа в ПУБЛИЧНЫЙ репозиторий
 app.post('/save-to-log', async (req, res) => {
   try {
     const { path, content } = req.body;
@@ -325,27 +359,43 @@ app.post('/save-to-log', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Нет содержимого' });
     }
 
-    const fullPath = path; // уже log/ДД_ММ_ГГГГ.json
-
-    // Проверяем, существует ли файл
-    let sha = null;
-    try {
-      const existing = await ghGetFile(fullPath);
-      sha = existing.sha;
-    } catch (e) {
-      // файл не существует — это нормально, просто создадим новый
+    if (!PUBLIC_GH_TOKEN) {
+      return res.status(500).json({ success: false, message: 'Сервер не настроен для сохранения в публичный репозиторий' });
     }
 
-    await ghPutFile(
+    const fullPath = path; // log/ДД_ММ_ГГГГ.json
+
+    let sha = null;
+    try {
+      const url = `${GH_API}/repos/${PUBLIC_OWNER}/${PUBLIC_REPO}/contents/${fullPath}?ref=${encodeURIComponent(PUBLIC_BRANCH)}`;
+      const r = await fetch(url, { headers: publicGhHeaders() });
+      if (r.ok) {
+        const data = await r.json();
+        sha = data.sha;
+      }
+    } catch (e) {
+      // файл не существует — это нормально
+    }
+
+    await publicGhPutFile(
       fullPath,
-      content,                  // массив объектов
+      content,
       sha,
       `Backup reserves: ${path}`
     );
 
     res.json({ success: true });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ success: false, message: e.message || 'Ошибка сохранения в лог' });
+    console.error('Ошибка сохранения в публичный репозиторий:', e);
+    res.status(500).json({ success: false, message: e.message || 'Ошибка сохранения в log' });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`✅ Server listening on :${PORT}`);
+  console.log(`📦 Private data repo: ${GITHUB_OWNER}/${GITHUB_REPO} (${GITHUB_BRANCH})`);
+  if (PUBLIC_GH_TOKEN) {
+    console.log(`📦 Public backup repo: ${PUBLIC_OWNER}/${PUBLIC_REPO} (${PUBLIC_BRANCH})`);
   }
 });
