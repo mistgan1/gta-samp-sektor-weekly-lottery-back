@@ -44,6 +44,19 @@ function decodeBase64Utf8(b64) {
 }
 
 async function ghGetFile(filePath) {
+  let history = await ghGetFile('data/history.json');
+
+  if (typeof history === 'string') {
+    history = JSON.parse(history);
+  }
+
+  if (!Array.isArray(history)) {
+    return res.status(500).json({
+      success: false,
+      message: 'History is not array'
+    });
+  }
+
   const url = `${GH_API}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${filePath}?ref=${encodeURIComponent(GITHUB_BRANCH)}`;
   const r = await fetch(url, { headers: ghHeaders() });
   if (!r.ok) {
