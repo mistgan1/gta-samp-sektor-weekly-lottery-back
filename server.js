@@ -226,3 +226,44 @@ app.listen(PORT, () => {
   console.log(`✅ Server listening on :${PORT}`);
   console.log(`📦 Data repo: ${GITHUB_OWNER}/${GITHUB_REPO} (${GITHUB_BRANCH})`);
 });
+
+app.post('/save-history', async (req, res) => {
+  try {
+    const { date, number, name, chosenNumber, prize, mode } = req.body;
+
+    if (!date || number === undefined) {
+      return res.status(400).json({ success: false });
+    }
+
+    const { json: history, sha } = await ghGetFile(PATH_HISTORY);
+    const list = Array.isArray(history) ? history : [];
+
+    if (mode === 'edit') {
+      const idx = list.findIndex(
+        item => item.date === date && Number(item.number) === Number(number)
+      );
+      if (idx === -1) return res.status(404).json({ success: false });
+
+      list[idx] = {
+        ...list[idx],
+        name: name || '',
+        prize: prize || '',
+        chosenNumber: chosenNumber || ''
+      };
+    } else {
+      list.push({
+        date,
+        number: Number(number),
+        name: name || '',
+        prize: prize || '',
+        chosenNumber: chosenNumber || ''
+      });
+    }
+
+    await ghPutFile(PATH_HISTORY, list, sha, `Save history: ${date} #${number}`);
+    res.json({ success: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ success: false });
+  }
+});
