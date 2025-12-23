@@ -312,3 +312,40 @@ app.post('/save-history', async (req, res) => {
     res.status(500).json({ success: false });
   }
 });
+// Новый маршрут для сохранения в log
+app.post('/save-to-log', async (req, res) => {
+  try {
+    const { path, content } = req.body;
+
+    if (!path || !path.startsWith('log/') || !path.endsWith('.json')) {
+      return res.status(400).json({ success: false, message: 'Некорректный путь' });
+    }
+
+    if (!content || typeof content !== 'object') {
+      return res.status(400).json({ success: false, message: 'Нет содержимого' });
+    }
+
+    const fullPath = path; // уже log/ДД_ММ_ГГГГ.json
+
+    // Проверяем, существует ли файл
+    let sha = null;
+    try {
+      const existing = await ghGetFile(fullPath);
+      sha = existing.sha;
+    } catch (e) {
+      // файл не существует — это нормально, просто создадим новый
+    }
+
+    await ghPutFile(
+      fullPath,
+      content,                  // массив объектов
+      sha,
+      `Backup reserves: ${path}`
+    );
+
+    res.json({ success: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ success: false, message: e.message || 'Ошибка сохранения в лог' });
+  }
+});
