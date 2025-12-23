@@ -222,6 +222,35 @@ app.post('/update-prize', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
+app.delete('/history/:date/:number', async (req, res) => {
+  try {
+    const { date, number } = req.params;
+
+    const { json: history, sha } = await ghGetFile(PATH_HISTORY);
+    const list = Array.isArray(history) ? history : [];
+
+    const newList = list.filter(
+      item => !(item.date === date && Number(item.number) === Number(number))
+    );
+
+    if (newList.length === list.length) {
+      return res.status(404).json({ success: false, message: 'Запись не найдена' });
+    }
+
+    await ghPutFile(
+      PATH_HISTORY,
+      newList,
+      sha,
+      `Delete history entry: ${date} #${number}`
+    );
+
+    res.json({ success: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ success: false, message: 'Ошибка при удалении записи' });
+  }
+});
 app.listen(PORT, () => {
   console.log(`✅ Server listening on :${PORT}`);
   console.log(`📦 Data repo: ${GITHUB_OWNER}/${GITHUB_REPO} (${GITHUB_BRANCH})`);
