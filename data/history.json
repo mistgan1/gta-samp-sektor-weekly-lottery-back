@@ -672,6 +672,12 @@
   {
     "date": "17.12.2025",
     "number": 30,
-    "name": "Red_Skull 30"
+    "name": "Red_Skull 30",
+    "prize": "coupons"
+  },
+  {
+    "date": "23.12.2025",
+    "number": 68,
+    "name": "Echpochmak 66"
   }
 ]
