@@ -118,9 +118,22 @@ app.get('/prizes', async (req, res) => {
 });
 
 // простая авторизация как у тебя сейчас
+
 app.post('/auth', (req, res) => {
   const { password } = req.body;
-  if (password === '1001') return res.json({ success: true });
+
+  // Получаем пароль из переменной окружения
+  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+  if (!ADMIN_PASSWORD) {
+    console.error('ADMIN_PASSWORD не установлен в переменных окружения!');
+    return res.status(500).json({ success: false, message: 'Ошибка сервера' });
+  }
+
+  if (password === ADMIN_PASSWORD) {
+    return res.json({ success: true });
+  }
+
   res.status(401).json({ success: false, message: 'Неверный пароль' });
 });
 
