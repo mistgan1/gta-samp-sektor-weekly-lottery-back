@@ -287,20 +287,17 @@ app.post('/delete-history', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Bad request' });
     }
 
-    // 1. Загружаем history.json из приватного репозитория
+    // ghGetFile УЖЕ возвращает массив
     const history = await ghGetFile('data/history.json');
 
-    // 2. Удаляем запись по date + number
     const filtered = history.filter(
       item => !(item.date === date && String(item.number) === String(number))
     );
 
-    // 3. Если ничего не удалилось — ошибка
     if (filtered.length === history.length) {
       return res.status(404).json({ success: false, message: 'Record not found' });
     }
 
-    // 4. Сохраняем обратно в GitHub
     await ghPutFile(
       'data/history.json',
       filtered,
@@ -313,3 +310,4 @@ app.post('/delete-history', async (req, res) => {
     res.status(500).json({ success: false });
   }
 });
+
