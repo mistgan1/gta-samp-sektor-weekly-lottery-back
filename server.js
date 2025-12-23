@@ -392,6 +392,34 @@ app.post('/save-to-log', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+// Очистка всего names.json (удаление всех резервов)
+app.post('/clear-names', async (req, res) => {
+  try {
+    // Получаем текущий файл (чтобы взять sha)
+    let sha = null;
+    let currentContent = [];
+    try {
+      const existing = await ghGetFile(PATH_NAMES);
+      sha = existing.sha;
+      currentContent = existing.json;
+    } catch (e) {
+      // Если файла нет — нормально, просто создадим пустой
+    }
+
+    // Очищаем содержимое
+    await ghPutFile(
+      PATH_NAMES,
+      [], // пустой массив
+      sha,
+      'Clear all reserves: reset names.json to empty'
+    );
+
+    res.json({ success: true });
+  } catch (e) {
+    console.error('Ошибка при очистке names.json:', e);
+    res.status(500).json({ success: false, message: e.message || 'Ошибка очистки' });
+  }
+});
 app.listen(PORT, () => {
   console.log(`✅ Server listening on :${PORT}`);
   console.log(`📦 Private data repo: ${GITHUB_OWNER}/${GITHUB_REPO} (${GITHUB_BRANCH})`);
