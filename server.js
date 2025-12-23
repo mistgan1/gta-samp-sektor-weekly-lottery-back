@@ -44,19 +44,6 @@ function decodeBase64Utf8(b64) {
 }
 
 async function ghGetFile(filePath) {
-  let history = await ghGetFile('data/history.json');
-
-  if (typeof history === 'string') {
-    history = JSON.parse(history);
-  }
-
-  if (!Array.isArray(history)) {
-    return res.status(500).json({
-      success: false,
-      message: 'History is not array'
-    });
-  }
-
   const url = `${GH_API}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${filePath}?ref=${encodeURIComponent(GITHUB_BRANCH)}`;
   const r = await fetch(url, { headers: ghHeaders() });
   if (!r.ok) {
@@ -242,7 +229,7 @@ app.listen(PORT, () => {
 
 app.post('/save-history', async (req, res) => {
   try {
-    const { date, number, name, prize, mode } = req.body;
+    const { date, number, name, chosenNumber, prize, mode } = req.body;
 
     if (!date || number === undefined) {
       return res.status(400).json({ success: false });
@@ -260,14 +247,16 @@ app.post('/save-history', async (req, res) => {
       list[idx] = {
         ...list[idx],
         name: name || '',
-        prize: prize || ''
+        prize: prize || '',
+        chosenNumber: chosenNumber || ''
       };
     } else {
       list.push({
         date,
         number: Number(number),
         name: name || '',
-        prize: prize || ''
+        prize: prize || '',
+        chosenNumber: chosenNumber || ''
       });
     }
 
@@ -275,41 +264,6 @@ app.post('/save-history', async (req, res) => {
     res.json({ success: true });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ success: false });
-  }
-});
-
-app.post('/delete-history', async (req, res) => {
-  try {
-    const { date, number } = req.body;
-
-    if (!date || number === undefined) {
-      return res.status(400).json({ success: false, message: 'Bad request' });
-    }
-
-    // 1. Загружаем history.json из приватного репозитория
-    const history = await ghGetFile('data/history.json');
-
-    // 2. Удаляем запись по date + number
-    const filtered = history.filter(
-      item => !(item.date === date && String(item.number) === String(number))
-    );
-
-    // 3. Если ничего не удалилось — ошибка
-    if (filtered.length === history.length) {
-      return res.status(404).json({ success: false, message: 'Record not found' });
-    }
-
-    // 4. Сохраняем обратно в GitHub
-    await ghPutFile(
-      'data/history.json',
-      filtered,
-      `Delete history record: ${date} ${number}`
-    );
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error('delete-history error:', err);
     res.status(500).json({ success: false });
   }
 });
