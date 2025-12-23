@@ -229,7 +229,7 @@ app.listen(PORT, () => {
 
 app.post('/save-history', async (req, res) => {
   try {
-    const { date, number, name, chosenNumber, prize, mode } = req.body;
+    const { date, number, name, prize, mode } = req.body;
 
     if (!date || number === undefined) {
       return res.status(400).json({ success: false });
@@ -247,16 +247,14 @@ app.post('/save-history', async (req, res) => {
       list[idx] = {
         ...list[idx],
         name: name || '',
-        prize: prize || '',
-        chosenNumber: chosenNumber || ''
+        prize: prize || ''
       };
     } else {
       list.push({
         date,
         number: Number(number),
         name: name || '',
-        prize: prize || '',
-        chosenNumber: chosenNumber || ''
+        prize: prize || ''
       });
     }
 
