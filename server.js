@@ -44,60 +44,51 @@ function decodeBase64Utf8(b64) {
 }
 
 async function ghGetFile(filePath) {
-  const url = `https://api.github.com/repos/${DATA_REPO}/contents/${filePath}?ref=${DATA_BRANCH}`;
+  let history = await ghGetFile('data/history.json');
 
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      Accept: 'application/vnd.github+json'
-    }
-  });
-
-  if (!res.ok) {
-    throw new Error(`GitHub GET failed (${res.status})`);
+  if (typeof history === 'string') {
+    history = JSON.parse(history);
   }
 
-  const data = await res.json();
+  if (!Array.isArray(history)) {
+    return res.status(500).json({
+      success: false,
+      message: 'History is not array'
+    });
+  }
 
-  // GitHub всегда возвращает content в base64
-  const content = Buffer.from(data.content, 'base64').toString('utf-8');
-
-  return JSON.parse(content); // ⬅️ ВСЕГДА массив / объект
+  const url = `${GH_API}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${filePath}?ref=${encodeURIComponent(GITHUB_BRANCH)}`;
+  const r = await fetch(url, { headers: ghHeaders() });
+  if (!r.ok) {
+    const text = await r.text();
+    throw new Error(`GitHub GET failed (${r.status}): ${text}`);
+  }
+  const data = await r.json();
+  const content = decodeBase64Utf8(data.content || '');
+  return { json: JSON.parse(content || '[]'), sha: data.sha };
 }
 
+async function ghPutFile(filePath, jsonValue, sha, message) {
+  const url = `${GH_API}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${filePath}`;
+  const body = {
+    message,
+    content: encodeBase64Utf8(JSON.stringify(jsonValue, null, 2)),
+    branch: GITHUB_BRANCH,
+  };
+  if (sha) body.sha = sha;
 
-async function ghPutFile(filePath, jsonData, message) {
-  const getUrl = `https://api.github.com/repos/${DATA_REPO}/contents/${filePath}?ref=${DATA_BRANCH}`;
-
-  const getRes = await fetch(getUrl, {
-    headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      Accept: 'application/vnd.github+json'
-    }
-  });
-
-  const getData = await getRes.json();
-  const sha = getData.sha;
-
-  const putRes = await fetch(getUrl, {
+  const r = await fetch(url, {
     method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      Accept: 'application/vnd.github+json'
-    },
-    body: JSON.stringify({
-      message,
-      content: Buffer.from(JSON.stringify(jsonData, null, 2)).toString('base64'),
-      sha,
-      branch: DATA_BRANCH
-    })
+    headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   });
 
-  if (!putRes.ok) {
-    throw new Error('GitHub PUT failed');
+  if (!r.ok) {
+    const text = await r.text();
+    throw new Error(`GitHub PUT failed (${r.status}): ${text}`);
   }
+  return await r.json();
 }
-
 
 // Пути в приватном репо
 const PATH_HISTORY = 'data/history.json';
@@ -296,17 +287,20 @@ app.post('/delete-history', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Bad request' });
     }
 
-    // ghGetFile УЖЕ возвращает массив
+    // 1. Загружаем history.json из приватного репозитория
     const history = await ghGetFile('data/history.json');
 
+    // 2. Удаляем запись по date + number
     const filtered = history.filter(
       item => !(item.date === date && String(item.number) === String(number))
     );
 
+    // 3. Если ничего не удалилось — ошибка
     if (filtered.length === history.length) {
       return res.status(404).json({ success: false, message: 'Record not found' });
     }
 
+    // 4. Сохраняем обратно в GitHub
     await ghPutFile(
       'data/history.json',
       filtered,
@@ -319,4 +313,3 @@ app.post('/delete-history', async (req, res) => {
     res.status(500).json({ success: false });
   }
 });
-
