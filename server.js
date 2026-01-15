@@ -427,3 +427,18 @@ app.listen(PORT, () => {
     console.log(`📦 Public backup repo: ${PUBLIC_OWNER}/${PUBLIC_REPO} (${PUBLIC_BRANCH})`);
   }
 });
+
+app.get('/log', async (req, res) => {
+  try {
+    const { json: historyFiles, sha } = await ghGetFile('log/'); 
+    const logFiles = historyFiles
+      .filter(item => item.type === 'file')
+      .filter(item => /^\d{2}_\d{2}_\d{4}\.json$/.test(item.name))
+      .map(item => item.name);
+
+    res.json(logFiles);
+  } catch (err) {
+    console.error('Ошибка получения списка логов:', err);
+    res.status(500).json({ error: 'Не удалось получить список файлов' });
+  }
+});
