@@ -430,15 +430,37 @@ app.listen(PORT, () => {
 
 app.get('/log', async (req, res) => {
   try {
-    const { json: historyFiles, sha } = await ghGetFile('log/'); 
-    const logFiles = historyFiles
+    const url = `${GH_API}/repos/${PUBLIC_OWNER}/${PUBLIC_REPO}/contents/log/?ref=${encodeURIComponent(PUBLIC_BRANCH)}`;
+    
+    const r = await fetch(url, { headers: publicGhHeaders() });
+    
+    if (!r.ok) {
+      const text = await r.text();
+      throw new Error(`Public repo GET failed (${r.status}): ${text}`);
+    }
+    
+    const items = await r.json();
+
+    const logFiles = items
       .filter(item => item.type === 'file')
       .filter(item => /^\d{2}_\d{2}_\d{4}\.json$/.test(item.name))
-      .map(item => item.name);
+      .map(item => item.name)
+      .sort((a, b) => b.localeCompare(a)); 
+
+    console.log(`Найдено ${logFiles.length} логов в публичном log/`);
 
     res.json(logFiles);
+
   } catch (err) {
-    console.error('Ошибка получения списка логов:', err);
-    res.status(500).json({ error: 'Не удалось получить список файлов' });
+    console.error('Ошибка в /log endpoint:', err.message);
+    
+    if (err.message.includes('404')) {
+      res.status(404).json({ error: 'Папка log/ не найдена в публичном репозитории' });
+    } else {
+      res.status(500).json({ 
+        error: 'Не удалось загрузить список логов',
+        details: err.message 
+      });
+    }
   }
 });
