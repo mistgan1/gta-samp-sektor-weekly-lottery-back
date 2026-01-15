@@ -428,39 +428,38 @@ app.listen(PORT, () => {
   }
 });
 
-app.get('/log', async (req, res) => {
+
+app.get('/log/:filename', async (req, res) => {
+  const filename = req.params.filename;
+  
+  if (!/^\d{2}_\d{2}_\d{4}\.json$/.test(filename)) {
+    return res.status(400).json({ error: 'Недопустимое имя файла' });
+  }
+
   try {
-    const url = `${GH_API}/repos/${PUBLIC_OWNER}/${PUBLIC_REPO}/contents/log/?ref=${encodeURIComponent(PUBLIC_BRANCH)}`;
+    const url = `${GH_API}/repos/${PUBLIC_OWNER}/${PUBLIC_REPO}/contents/log/${filename}?ref=${encodeURIComponent(PUBLIC_BRANCH)}`;
     
     const r = await fetch(url, { headers: publicGhHeaders() });
     
     if (!r.ok) {
+      if (r.status === 404) {
+        return res.status(404).json({ error: `Файл ${filename} не найден` });
+      }
       const text = await r.text();
       throw new Error(`Public repo GET failed (${r.status}): ${text}`);
     }
     
-    const items = await r.json();
-
-    const logFiles = items
-      .filter(item => item.type === 'file')
-      .filter(item => /^\d{2}_\d{2}_\d{4}\.json$/.test(item.name))
-      .map(item => item.name)
-      .sort((a, b) => b.localeCompare(a)); 
-
-    console.log(`Найдено ${logFiles.length} логов в публичном log/`);
-
-    res.json(logFiles);
-
-  } catch (err) {
-    console.error('Ошибка в /log endpoint:', err.message);
+    const data = await r.json();
+    const content = decodeBase64Utf8(data.content || '[]');
     
-    if (err.message.includes('404')) {
-      res.status(404).json({ error: 'Папка log/ не найдена в публичном репозитории' });
-    } else {
-      res.status(500).json({ 
-        error: 'Не удалось загрузить список логов',
-        details: err.message 
-      });
-    }
+    res.setHeader('Content-Type', 'application/json');
+    res.send(content);
+    
+  } catch (err) {
+    console.error(`Ошибка при загрузке файла ${filename}:`, err.message);
+    res.status(500).json({ 
+      error: 'Не удалось загрузить файл',
+      details: err.message 
+    });
   }
 });
