@@ -24,9 +24,6 @@ const {
   GITHUB_BRANCH = 'main',
 } = process.env;
 
-// ────────────────────────────────────────────────
-// Параметры для ПУБЛИЧНОГО репозитория с логами
-// ────────────────────────────────────────────────
 const PUBLIC_GH_TOKEN = process.env.GITHUB_PUBLIC_TOKEN;
 const PUBLIC_OWNER = 'mistgan1';
 const PUBLIC_REPO = 'gta-samp-sektor-weekly-lottery-back';
@@ -37,7 +34,7 @@ if (!GITHUB_TOKEN || !GITHUB_OWNER || !GITHUB_REPO) {
 }
 
 if (!PUBLIC_GH_TOKEN) {
-  console.warn('⚠️ GITHUB_PUBLIC_TOKEN не задан — работа с публичным репозиторием будет ограничена');
+  console.warn('⚠️ GITHUB_PUBLIC_TOKEN не задан — бэкапы в публичный репозиторий работать не будут');
 }
 
 const GH_API = 'https://api.github.com';
@@ -122,13 +119,12 @@ async function publicGhPutFile(filePath, jsonValue, sha, message) {
   return await r.json();
 }
 
-// Пути в приватном репо
 const PATH_HISTORY = 'data/history.json';
 const PATH_NAMES  = 'data/names.json';
 const PATH_PRIZES = 'data/prizes.json';
 
 // ────────────────────────────────────────────────
-// Основные API-эндпоинты
+// API-эндпоинты
 // ────────────────────────────────────────────────
 
 app.get('/history', async (req, res) => {
@@ -199,24 +195,222 @@ app.post('/reserve', async (req, res) => {
 
     res.json({ success: true });
   } catch (e) {
-    console.error(e);
+    console.error('Ошибка /reserve:', e);
     res.status(500).json({ success: false, message: 'Failed to update names' });
   }
 });
 
-app.post('/update-winner', async (req, res) => { /* ... */ });
-app.post('/update-winner-prize', async (req, res) => { /* ... */ });
-app.post('/update-prize', async (req, res) => { /* ... */ });
-app.delete('/history/:date/:number', async (req, res) => { /* ... */ });
-app.post('/save-history', async (req, res) => { /* ... */ });
-app.post('/save-to-log', async (req, res) => { /* ... */ });
-app.post('/clear-names', async (req, res) => { /* ... */ });
+app.post('/update-winner', async (req, res) => {
+  try {
+    const { date, number, name } = req.body;
+    if (!date || number === undefined) {
+      return res.status(400).json({ success: false, message: 'Неверные данные' });
+    }
+
+    const { json: history, sha } = await ghGetFile(PATH_HISTORY);
+
+    const idx = (history || []).findIndex(item => item.date === date && Number(item.number) === Number(number));
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Запись не найдена' });
+
+    history[idx].name = name || '';
+
+    await ghPutFile(PATH_HISTORY, history, sha, `Update winner: ${date} #${number}`);
+    res.json({ success: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ success: false, message: 'Failed to update history' });
+  }
+});
+
+app.post('/update-winner-prize', async (req, res) => {
+  try {
+    const { date, name, prize } = req.body;
+    if (!date || !name) {
+      return res.status(400).json({ success: false, message: 'Некорректные данные' });
+    }
+
+    const { json: history, sha } = await ghGetFile(PATH_HISTORY);
+
+    const idx = (history || []).findIndex(item => item.date === date && item.name === name);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Победитель не найден' });
+
+    history[idx].prize = prize || '';
+
+    await ghPutFile(PATH_HISTORY, history, sha, `Update winner prize: ${date} ${name}`);
+    res.json({ success: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ success: false, message: 'Failed to update winner prize' });
+  }
+});
+
+app.post('/update-prize', async (req, res) => {
+  try {
+    const { prize, count } = req.body;
+
+    if (!prize || count === undefined || Number.isNaN(Number(count)) || Number(count) < 0) {
+      return res.status(400).json({ success: false, message: 'Некорректные данные' });
+    }
+
+    const { json: prizes, sha } = await ghGetFile(PATH_PRIZES);
+
+    const idx = (prizes || []).findIndex(p => p.prize === prize);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Приз не найден' });
+
+    prizes[idx].count = Number(count);
+
+    await ghPutFile(PATH_PRIZES, prizes, sha, `Update prize count: ${prize}=${count}`);
+    res.json({ success: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ success: false, message: 'Failed to update prizes' });
+  }
+});
+
+app.delete('/history/:date/:number', async (req, res) => {
+  try {
+    const { date, number } = req.params;
+
+    const { json: history, sha } = await ghGetFile(PATH_HISTORY);
+    const list = Array.isArray(history) ? history : [];
+
+    const newList = list.filter(
+      item => !(item.date === date && Number(item.number) === Number(number))
+    );
+
+    if (newList.length === list.length) {
+      return res.status(404).json({ success: false, message: 'Запись не найдена' });
+    }
+
+    await ghPutFile(
+      PATH_HISTORY,
+      newList,
+      sha,
+      `Delete history entry: ${date} #${number}`
+    );
+
+    res.json({ success: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ success: false, message: 'Ошибка при удалении записи' });
+  }
+});
+
+app.post('/save-history', async (req, res) => {
+  try {
+    const { date, number, name, chosenNumber, prize, mode } = req.body;
+
+    if (!date || number === undefined) {
+      return res.status(400).json({ success: false, message: 'Дата и номер обязательны' });
+    }
+
+    const { json: history, sha } = await ghGetFile(PATH_HISTORY);
+    const list = Array.isArray(history) ? history : [];
+
+    if (mode === 'edit') {
+      const idx = list.findIndex(
+        item => item.date === date && Number(item.number) === Number(number)
+      );
+      if (idx === -1) return res.status(404).json({ success: false, message: 'Запись не найдена' });
+
+      list[idx] = {
+        ...list[idx],
+        name: name || '',
+        prize: prize || '',
+        chosenNumber: chosenNumber || ''
+      };
+    } else {
+      list.push({
+        date,
+        number: Number(number),
+        name: name || '',
+        prize: prize || '',
+        chosenNumber: chosenNumber || ''
+      });
+    }
+
+    await ghPutFile(PATH_HISTORY, list, sha, `Save history: ${date} #${number}`);
+    res.json({ success: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ success: false, message: 'Не удалось сохранить историю' });
+  }
+});
+
+app.post('/save-to-log', async (req, res) => {
+  try {
+    const { path, content } = req.body;
+
+    if (!path || !path.startsWith('log/') || !path.endsWith('.json')) {
+      return res.status(400).json({ success: false, message: 'Некорректный путь' });
+    }
+
+    if (!content || typeof content !== 'object') {
+      return res.status(400).json({ success: false, message: 'Нет содержимого' });
+    }
+
+    if (!PUBLIC_GH_TOKEN) {
+      return res.status(500).json({ success: false, message: 'Сервер не настроен для сохранения в публичный репозиторий' });
+    }
+
+    const fullPath = path;
+
+    let sha = null;
+    try {
+      const url = `${GH_API}/repos/${PUBLIC_OWNER}/${PUBLIC_REPO}/contents/${fullPath}?ref=${encodeURIComponent(PUBLIC_BRANCH)}`;
+      const r = await fetch(url, { headers: publicGhHeaders() });
+      if (r.ok) {
+        const data = await r.json();
+        sha = data.sha;
+      }
+    } catch (e) {
+      // файл не существует — нормально
+    }
+
+    await publicGhPutFile(
+      fullPath,
+      content,
+      sha,
+      `Backup reserves: ${path}`
+    );
+
+    res.json({ success: true });
+  } catch (e) {
+    console.error('Ошибка сохранения в публичный репозиторий:', e);
+    res.status(500).json({ success: false, message: e.message || 'Ошибка сохранения в log' });
+  }
+});
+
+app.post('/clear-names', async (req, res) => {
+  try {
+    let sha = null;
+    let currentContent = [];
+    try {
+      const existing = await ghGetFile(PATH_NAMES);
+      sha = existing.sha;
+      currentContent = existing.json;
+    } catch (e) {
+      // файл не существует — нормально
+    }
+
+    await ghPutFile(
+      PATH_NAMES,
+      [],
+      sha,
+      'Clear all reserves: reset names.json to empty'
+    );
+
+    res.json({ success: true });
+  } catch (e) {
+    console.error('Ошибка при очистке names.json:', e);
+    res.status(500).json({ success: false, message: e.message || 'Ошибка очистки' });
+  }
+});
 
 // ────────────────────────────────────────────────
-// Логи — список файлов и содержимое отдельного файла
+// Логи — список и содержимое файлов
 // ────────────────────────────────────────────────
 
-// Список всех файлов в папке log/
 app.get('/log', async (req, res) => {
   try {
     const url = `${GH_API}/repos/${PUBLIC_OWNER}/${PUBLIC_REPO}/contents/log/?ref=${encodeURIComponent(PUBLIC_BRANCH)}`;
@@ -234,7 +428,7 @@ app.get('/log', async (req, res) => {
       .filter(item => item.type === 'file')
       .filter(item => /^\d{2}_\d{2}_\d{4}\.json$/.test(item.name))
       .map(item => item.name)
-      .sort((a, b) => b.localeCompare(a)); // новые сверху
+      .sort((a, b) => b.localeCompare(a));
 
     res.json(logFiles);
   } catch (err) {
@@ -243,7 +437,6 @@ app.get('/log', async (req, res) => {
   }
 });
 
-// Содержимое конкретного файла
 app.get('/log/:filename', async (req, res) => {
   const filename = req.params.filename;
   
@@ -280,8 +473,9 @@ app.get('/log/:filename', async (req, res) => {
 });
 
 // ────────────────────────────────────────────────
-// Запуск сервера — ВСЕГДА в самом конце!
+// Запуск
 // ────────────────────────────────────────────────
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Server listening on :${PORT}`);
